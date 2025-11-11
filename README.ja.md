@@ -139,7 +139,14 @@ Python依存関係は`requirements.txt`に記載されています（MediaPipe�
    ./build_exe.sh
    ```
 
-3. 実行可能ファイルは`dist/EyeTracker/`ディレクトリにあります。
+3. 実行可能ファイルは`dist/EyeTracker.exe`（単一ファイル）または`dist/EyeTracker/`ディレクトリ（フォルダ）にあります。
+
+   **現在のモード:** ワンファイル（単一実行可能ファイル）
+   - 📦 `dist/EyeTracker.exe` - スタンドアロン実行可能ファイル（約400-500 MB）
+   - ⚠️ 初回起動は5-10秒かかる場合があります（一時フォルダへの展開）
+   - ✅ 配布が簡単 - 1つのファイルだけ！
+
+   ワンフォルダモード（高速起動）に切り替えるには、[ONE_FILE_BUILD.md](ONE_FILE_BUILD.md)を参照してください。
 
 ### 手動ビルド
 

@@ -27,11 +27,21 @@ echo Running PyInstaller with custom spec file...
 pyinstaller EyeTracker.spec
 
 echo.
-if exist dist\EyeTracker\EyeTracker.exe (
+if exist dist\EyeTracker.exe (
     echo Build successful!
-    echo Executable location: dist\EyeTracker\EyeTracker.exe
     echo.
-    echo You can now run the application from dist\EyeTracker\EyeTracker.exe
+    echo ===================================================
+    echo   ONE-FILE BUILD COMPLETE
+    echo ===================================================
+    echo   Executable location: dist\EyeTracker.exe
+    echo   File size: 
+    for %%A in (dist\EyeTracker.exe) do echo   %%~zA bytes
+    echo.
+    echo   You can now run: dist\EyeTracker.exe
+    echo.
+    echo   Note: First startup may take 5-10 seconds
+    echo         (unpacking to temp folder)
+    echo ===================================================
 ) else (
     echo Build failed! Check the output above for errors.
     exit /b 1

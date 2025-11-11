@@ -104,6 +104,11 @@ class GazeHeadTracker(QtCore.QObject):
 
         self._csv_writer: Optional[csv.writer] = None
         self._csv_file_handle = None
+        
+        # Camera error tracking
+        self._camera_error_shown = False
+        self._camera_retry_requested = False
+        self._frame_read_error_count = 0
 
     def start(self) -> None:
         """Start the capture loop in a background thread."""
@@ -131,15 +136,28 @@ class GazeHeadTracker(QtCore.QObject):
     def _ensure_capture(self) -> bool:
         if self._capture and self._capture.isOpened():
             return True
+        
+        # Only emit error once unless retry is requested
+        if self._camera_error_shown and not self._camera_retry_requested:
+            return False
+        
         index = self._calibration_manager.settings.camera_index
         self._capture = cv2.VideoCapture(index, cv2.CAP_DSHOW if hasattr(cv2, "CAP_DSHOW") else 0)
         width = self._calibration_manager.settings.frame_width
         height = self._calibration_manager.settings.frame_height
         self._capture.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         self._capture.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+        
         if not self._capture.isOpened():
-            self.error_occurred.emit(f"Unable to open camera index {index}")
+            if not self._camera_error_shown or self._camera_retry_requested:
+                self.error_occurred.emit(f"Unable to open camera index {index}")
+                self._camera_error_shown = True
+                self._camera_retry_requested = False
             return False
+        
+        # Successfully opened camera, reset error flag
+        self._camera_error_shown = False
+        self._camera_retry_requested = False
         return True
 
     def _capture_loop(self) -> None:
@@ -163,9 +181,17 @@ class GazeHeadTracker(QtCore.QObject):
 
             ret, frame = self._capture.read()
             if not ret:
-                self.error_occurred.emit("Failed to read frame from camera.")
+                self._frame_read_error_count += 1
+                # Only show error after 3 consecutive failures
+                if self._frame_read_error_count >= 3 and not self._camera_error_shown:
+                    self.error_occurred.emit("Failed to read frame from camera.")
+                    self._camera_error_shown = True
+                    self._camera_retry_requested = False
                 time.sleep(0.5)
                 continue
+            
+            # Successfully read frame, reset error counter
+            self._frame_read_error_count = 0
 
             result = self._process_frame(frame)
             self._latest_result = result
@@ -437,6 +463,18 @@ class GazeHeadTracker(QtCore.QObject):
         self._calibration_manager.update_settings(camera_index=index)
         if self._capture and self._capture.isOpened():
             self._capture.release()
+        # Reset error flag when changing camera
+        self._camera_error_shown = False
+        self._camera_retry_requested = True
+
+    def retry_camera(self) -> None:
+        """Request camera retry after error."""
+        self._camera_retry_requested = True
+        self._camera_error_shown = False
+        self._frame_read_error_count = 0
+        if self._capture:
+            self._capture.release()
+            self._capture = None
 
     def set_overlay_enabled(self, enabled: bool) -> None:
         self._calibration_manager.update_settings(overlay_enabled=bool(enabled))

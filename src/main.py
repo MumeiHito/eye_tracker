@@ -560,7 +560,20 @@ class MainWindow(QtWidgets.QMainWindow):
             self._overlay_window.set_message("")
 
     def _on_error(self, message: str) -> None:
-        QtWidgets.QMessageBox.critical(self, "Error", message)
+        """Show error dialog with retry option."""
+        msg_box = QtWidgets.QMessageBox(self)
+        msg_box.setIcon(QtWidgets.QMessageBox.Critical)
+        msg_box.setWindowTitle("Camera Error")
+        msg_box.setText(message)
+        msg_box.setInformativeText("Would you like to retry?")
+        
+        retry_button = msg_box.addButton("Retry", QtWidgets.QMessageBox.AcceptRole)
+        cancel_button = msg_box.addButton("Cancel", QtWidgets.QMessageBox.RejectRole)
+        
+        msg_box.exec()
+        
+        if msg_box.clickedButton() == retry_button:
+            self._tracker.retry_camera()
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:  # noqa: D401
         self._tracker.stop()

@@ -139,7 +139,14 @@ The overlay is a borderless, transparent window that displays a warning message 
    ./build_exe.sh
    ```
 
-3. The executable will be in `dist/EyeTracker/` directory.
+3. The executable will be in `dist/EyeTracker.exe` (one file) or `dist/EyeTracker/` directory (one folder).
+
+   **Current mode:** One-File (single executable)
+   - 📦 `dist/EyeTracker.exe` - standalone executable (~400-500 MB)
+   - ⚠️ First startup may take 5-10 seconds (unpacking to temp folder)
+   - ✅ Easy to distribute - just one file!
+
+   To switch to One-Folder mode (faster startup), see [ONE_FILE_BUILD.md](ONE_FILE_BUILD.md).
 
 ### Manual Build
 
